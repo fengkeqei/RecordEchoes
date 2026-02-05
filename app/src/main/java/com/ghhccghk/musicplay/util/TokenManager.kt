@@ -7,6 +7,7 @@ object TokenManager {
     private const val PREF_NAME = "user_prefs"
     private const val KEY_ID = "user_id"
     private const val KEY_TOKEN = "user_token"
+    private const val KEY_DFID = "user_dfid"
 
     private var prefs: SharedPreferences? = null
 
@@ -22,6 +23,10 @@ object TokenManager {
         prefs?.edit()?.putString(KEY_ID, id)?.apply()
     }
 
+    fun saveDfid(dfid: String) {
+        prefs?.edit()?.putString(KEY_DFID, dfid)?.apply()
+    }
+
     fun getToken(): String? {
         return prefs?.getString(KEY_TOKEN, null)
     }
@@ -30,12 +35,22 @@ object TokenManager {
         return prefs?.getString(KEY_ID, null)
     }
 
+    fun getDfid(): String? {
+        return prefs?.getString(KEY_DFID, null)
+
+    }
+
     fun clearToken() {
         prefs?.edit()?.remove(KEY_TOKEN)?.apply()
     }
 
     fun clearUserId() {
         prefs?.edit()?.remove(KEY_ID)?.apply()
+    }
+
+    fun clearDfid(){
+        prefs?.edit()?.remove(KEY_DFID)?.apply()
+
     }
 
     fun clearAll() {
