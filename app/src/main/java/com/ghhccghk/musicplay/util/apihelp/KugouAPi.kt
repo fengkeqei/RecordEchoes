@@ -3,7 +3,10 @@ package com.ghhccghk.musicplay.util.apihelp
 import android.util.Log
 import androidx.core.net.toUri
 import com.ghhccghk.musicplay.MainActivity
+import com.ghhccghk.musicplay.data.dfid.DfidData
 import com.ghhccghk.musicplay.util.TokenManager
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
@@ -14,7 +17,9 @@ object KugouAPi {
     val apiaddress = "http:/127.0.0.1:9600"
     var token : String? = null
     var userid : String? = null
-    var perfs = MainActivity.lontext.getSharedPreferences("play_setting_prefs", 0)
+    private val moshi = Moshi.Builder()
+        .addLast(KotlinJsonAdapterFactory()) // 如果没用 codegen，这个是必须的
+        .build()
 
     fun init() {
         token = TokenManager.getToken()
@@ -242,58 +247,31 @@ object KugouAPi {
     }
 
     /** dfid 获取 */
-    fun getDfid(): String?{
+    fun getDfid(): DfidData? {
+        val dfidAdapter = moshi.adapter(DfidData::class.java)
         val url = "$apiaddress/register/dev".toUri().buildUpon().apply {
             token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
         }.build().toString()
-        val request = Request.Builder().url(url).build()
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                println("getDfid failed: ${response.code}")
-                return response.code.toString()
-            }
 
-            val responseBody = response.body?.string() ?: return null
-            return responseBody
-        }
-
-    }
-
-    /** 获取用户额外信息 */
-    fun getUserDetail(): String?{
-        val url = "$apiaddress/user/detail".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
-        }.build().toString()
         val request = Request.Builder().url(url).build()
 
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                println("getUesrDetail failed: ${response.code}")
-                return response.code.toString()
-            }
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return null
 
-            val responseBody = response.body?.string() ?: return null
-            return responseBody
+                // Moshi 直接支持从 BufferedSource (OkHttp 的 body) 读取，性能更好
+                val responseBody = response.body?.source() ?: return null
+
+                // 3. 解析
+                val result = dfidAdapter.fromJson(responseBody)
+                result
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
-    /** 获取用户 vip 信息 */
-    fun getUserVip(): String?{
-        val url = "$apiaddress/user/vip/detail".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
-        }.build().toString()
-        val request = Request.Builder().url(url).build()
-
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                println("getUesrDetail failed: ${response.code}")
-                return response.code.toString()
-            }
-
-            val responseBody = response.body?.string() ?: return null
-            return responseBody
-        }
-    }
 
     /** 获取用户歌单*/
     fun getUserPlayList(page: Int? = null, pageSize: Int? = null): String?{
