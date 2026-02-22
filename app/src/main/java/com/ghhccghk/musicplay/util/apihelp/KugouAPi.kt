@@ -280,8 +280,41 @@ object KugouAPi {
             e.printStackTrace()
             null
         }
+    }   /** 获取用户额外信息 */
+    fun getUserDetail(): String?{
+        val url = "$apiaddress/user/detail".toUri().buildUpon().apply {
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+        }.build().toString()
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                println("getUesrDetail failed: ${response.code}")
+                return response.code.toString()
+            }
+
+            val responseBody = response.body?.string() ?: return null
+            return responseBody
+        }
     }
 
+    /** 获取用户 vip 信息 */
+    fun getUserVip(): String?{
+        val url = "$apiaddress/user/vip/detail".toUri().buildUpon().apply {
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+        }.build().toString()
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                println("getUesrDetail failed: ${response.code}")
+                return response.code.toString()
+            }
+
+            val responseBody = response.body?.string() ?: return null
+            return responseBody
+        }
+    }
 
     /** 获取用户歌单*/
     fun getUserPlayList(page: Int? = null, pageSize: Int? = null): String?{
