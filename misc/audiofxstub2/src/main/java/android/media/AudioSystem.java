@@ -6,6 +6,7 @@ public class AudioSystem {
             INativeAudioVolumeGroupCallback callback) {
         throw new UnsupportedOperationException("Stub!");
     }
+
     public static /*native*/ int unregisterAudioVolumeGroupCallback(
             INativeAudioVolumeGroupCallback callback) {
         throw new UnsupportedOperationException("Stub!");

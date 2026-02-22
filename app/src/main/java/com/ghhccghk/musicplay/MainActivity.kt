@@ -114,14 +114,14 @@ class MainActivity : AppCompatActivity() {
         val cacheSizeBytes = cacheSizeMB * 1024 * 1024
         SmartImageCache.init(applicationContext, maxSize = cacheSizeBytes)
 
-        if (isFirstRun(this)) {
-            ZipExtractor.extractZipOnFirstRun(this, "api_js.zip", "nodejs_files"){
-                TokenManager.init(this)
+        if (isFirstRun(applicationContext)) {
+            ZipExtractor.extractZipOnFirstRun(applicationContext, "api_js.zip", "nodejs_files"){
+                TokenManager.init(applicationContext)
                 start()
             }
         } else {
+            TokenManager.init(applicationContext)
             start()
-            TokenManager.init(this)
         }
 
         val navController = findNavController(R.id.nav_host_fragment_activity_main)

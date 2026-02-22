@@ -70,8 +70,10 @@ public class AlacDecoder extends SimpleDecoder<DecoderInputBuffer, SimpleDecoder
             return new AlacDecoderException("input has extra data, why?");
         try {
             int limit = AlacDecodeUtils.decode_frame(file, inputBuffer, outputBuffer);
-            Util.castNonNull(outputBuffer.data).position(0);
-            outputBuffer.data.limit(limit);
+            if (outputBuffer.data != null) {
+                outputBuffer.data.position(0);
+                outputBuffer.data.limit(limit);
+            }
             return null;
         } catch (AlacDecoderException e) {
             return e;
@@ -82,15 +84,16 @@ public class AlacDecoder extends SimpleDecoder<DecoderInputBuffer, SimpleDecoder
 
     private int[] getChannelMapping() {
         return switch (file.numchannels) {
-            case 1 -> new int[] { 0 };
-            case 2 -> new int[] { 0, 1 };
-            case 3 -> new int[] { 2, 0, 1 };
-            case 4 -> new int[] { 2, 0, 1, 3 }; // must be CHANNEL_OUT_QUAD_SURROUND (non-canonical)!
-            case 5 -> new int[] { 2, 0, 1, 3, 4 };
-            case 6 -> new int[] { 2, 0, 1, 4, 5, 3 };
-            case 7 -> new int[] { 2, 0, 1, 4, 5, 6, 3 };
-            case 8 -> new int[] { 2, 6, 7, 0, 1, 4, 5, 3 };
-            default -> throw new UnsupportedOperationException("invalid channel mask " + file.numchannels);
+            case 1 -> new int[]{0};
+            case 2 -> new int[]{0, 1};
+            case 3 -> new int[]{2, 0, 1};
+            case 4 -> new int[]{2, 0, 1, 3}; // must be CHANNEL_OUT_QUAD_SURROUND (non-canonical)!
+            case 5 -> new int[]{2, 0, 1, 3, 4};
+            case 6 -> new int[]{2, 0, 1, 4, 5, 3};
+            case 7 -> new int[]{2, 0, 1, 4, 5, 6, 3};
+            case 8 -> new int[]{2, 6, 7, 0, 1, 4, 5, 3};
+            default ->
+                    throw new UnsupportedOperationException("invalid channel mask " + file.numchannels);
         };
     }
 }

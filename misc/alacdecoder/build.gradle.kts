@@ -13,6 +13,10 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
 
+    lint {
+        lintConfig = file("../../app/lint.xml")
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -26,6 +30,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+    enableKotlin = false
 }
 
 dependencies {
