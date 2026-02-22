@@ -63,11 +63,17 @@ public class AudioVolumeGroupChangeEvent {
      */
     public static final int VOLUME_FLAG_ABSOLUTE_VOLUME = 1 << 13;
 
-    /** Unique identifier of the volume group. */
+    /**
+     * Unique identifier of the volume group.
+     */
     public int groupId;
-    /** Index in UI applied. */
+    /**
+     * Index in UI applied.
+     */
     public int volumeIndex;
-    /** Muted attribute, orthogonal to volume index. */
+    /**
+     * Muted attribute, orthogonal to volume index.
+     */
     public boolean muted;
     /**
      * Bitmask indicating a suggested UI behavior or characterising the volume event.

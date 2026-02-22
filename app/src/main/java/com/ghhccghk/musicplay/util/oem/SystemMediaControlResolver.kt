@@ -7,6 +7,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.ResolveInfo
 import android.media.MediaRouter2
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.ghhccghk.musicplay.R
@@ -61,6 +62,10 @@ class SystemMediaControlResolver(val context: Context) {
             val intent = Intent().apply {
                 action = "com.android.systemui.action.LAUNCH_MEDIA_OUTPUT_DIALOG"
                 setPackage("com.android.systemui")
+                setClassName(
+                    "com.android.systemui",
+                    "com.android.systemui.media.dialog.MediaOutputDialogActivity"
+                )
                 putExtra("package_name", context.packageName)
             }
             val tag =  startNativeMediaDialog(intent)
@@ -92,6 +97,8 @@ class SystemMediaControlResolver(val context: Context) {
         for (resolveInfo in resolveInfoList) {
             val activityInfo = resolveInfo.activityInfo
             val applicationInfo: ApplicationInfo? = activityInfo?.applicationInfo
+            Log.d("SystemMediaControlResolver", "applicationInfo: $applicationInfo")
+            Log.d("SystemMediaControlResolver", "activityInfo: $activityInfo")
             if (applicationInfo != null && (applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0) {
                 context.startActivity(intent)
                 return true

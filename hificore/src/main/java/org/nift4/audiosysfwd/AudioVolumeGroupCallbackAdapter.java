@@ -1,108 +1,46 @@
 package org.nift4.audiosysfwd;
 
+import android.media.AudioSystem;
+import android.media.INativeAudioVolumeGroupCallback;
+import android.media.audio.common.AudioVolumeGroupChangeEvent;
 import android.util.Log;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.util.Objects;
 
-/* package */ final class AudioVolumeGroupCallbackAdapter {
-
-    private static final String TAG = "AVolumeGroupAdapter";
-
+/* package */ class AudioVolumeGroupCallbackAdapter extends INativeAudioVolumeGroupCallback.Stub {
     private final AudioVolumeGroupCallback delegate;
-    private Object nativeCallback; // INativeAudioVolumeGroupCallback (runtime)
 
-    AudioVolumeGroupCallbackAdapter(AudioVolumeGroupCallback delegate) {
+    public AudioVolumeGroupCallbackAdapter(AudioVolumeGroupCallback delegate) {
         this.delegate = delegate;
     }
 
-    private static int getInt(Class<?> c, Object o, String name) throws Exception {
-        Field f = c.getField(name);
-        return f.getInt(o);
-    }
-
-    private static boolean getBoolean(Class<?> c, Object o, String name) throws Exception {
-        Field f = c.getField(name);
-        return f.getBoolean(o);
+    @SuppressWarnings("PrivateApi")
+    public static Method getAdd() throws NoSuchMethodException {
+        return AudioSystem.class.getDeclaredMethod("registerAudioVolumeGroupCallback",
+                INativeAudioVolumeGroupCallback.class);
     }
 
     @SuppressWarnings("PrivateApi")
-    void register() {
-        try {
-            nativeCallback = createNativeCallback();
-
-            Class<?> audioSystem = Class.forName("android.media.AudioSystem");
-            Class<?> cbInterface =
-                    Class.forName("android.media.INativeAudioVolumeGroupCallback");
-
-            Method add = audioSystem.getDeclaredMethod(
-                    "registerAudioVolumeGroupCallback",
-                    cbInterface
-            );
-            add.setAccessible(true);
-            add.invoke(null, nativeCallback);
-
-        } catch (Throwable t) {
-            Log.e(TAG, "register failed", t);
-        }
+    public static Method getRemove() throws NoSuchMethodException {
+        return AudioSystem.class.getDeclaredMethod("unregisterAudioVolumeGroupCallback",
+                INativeAudioVolumeGroupCallback.class);
     }
 
-    @SuppressWarnings("PrivateApi")
-    void unregister() {
+    @Override
+    public void onAudioVolumeGroupChanged(AudioVolumeGroupChangeEvent volumeChangeEvent) {
+        org.nift4.audiosysfwd.AudioVolumeGroupChangeEvent event;
         try {
-            if (nativeCallback == null) return;
-
-            Class<?> audioSystem = Class.forName("android.media.AudioSystem");
-            Class<?> cbInterface =
-                    Class.forName("android.media.INativeAudioVolumeGroupCallback");
-
-            Method remove = audioSystem.getDeclaredMethod(
-                    "unregisterAudioVolumeGroupCallback",
-                    cbInterface
-            );
-            remove.setAccessible(true);
-            remove.invoke(null, nativeCallback);
-
+            Class<?> clazz = volumeChangeEvent.getClass();
+            event = new org.nift4.audiosysfwd.AudioVolumeGroupChangeEvent();
+            event.flags = (int) Objects.requireNonNull(clazz.getField("flags").get(volumeChangeEvent));
+            event.groupId = (int) Objects.requireNonNull(clazz.getField("groupId").get(volumeChangeEvent));
+            event.muted = (boolean) Objects.requireNonNull(clazz.getField("muted").get(volumeChangeEvent));
+            event.volumeIndex = (int) Objects.requireNonNull(clazz.getField("volumeIndex").get(volumeChangeEvent));
         } catch (Throwable t) {
-            Log.e(TAG, "unregister failed", t);
+            Log.e("AVolumeGroupCAdapter", "failed to convert", t);
+            return;
         }
-    }
-
-    private Object createNativeCallback() throws Exception {
-        Class<?> cbInterface =
-                Class.forName("android.media.INativeAudioVolumeGroupCallback");
-
-        return Proxy.newProxyInstance(
-                cbInterface.getClassLoader(),
-                new Class<?>[]{cbInterface},
-                (proxy, method, args) -> {
-                    if ("onAudioVolumeGroupChanged".equals(method.getName())
-                            && args != null
-                            && args.length == 1) {
-                        handleFrameworkEvent(args[0]);
-                    }
-                    return null;
-                }
-        );
-    }
-
-    private void handleFrameworkEvent(Object frameworkEvent) {
-        try {
-            Class<?> clazz = frameworkEvent.getClass();
-
-            AudioVolumeGroupChangeEvent event =
-                    new AudioVolumeGroupChangeEvent();
-
-            event.flags = getInt(clazz, frameworkEvent, "flags");
-            event.groupId = getInt(clazz, frameworkEvent, "groupId");
-            event.volumeIndex = getInt(clazz, frameworkEvent, "volumeIndex");
-            event.muted = getBoolean(clazz, frameworkEvent, "muted");
-
-            delegate.onAudioVolumeGroupChanged(event);
-
-        } catch (Throwable t) {
-            Log.e(TAG, "event convert failed", t);
-        }
+        delegate.onAudioVolumeGroupChanged(event);
     }
 }

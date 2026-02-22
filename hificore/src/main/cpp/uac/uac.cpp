@@ -7,7 +7,8 @@
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_org_nift4_gramophone_hificore_UacManager_getDetailsForUsbDevice(JNIEnv *env, jobject thiz, jint inFd) {
-	int fd = dup(inFd);
-	// TODO: implement getDetailsForUsbDevice()
+Java_org_nift4_gramophone_hificore_UacManager_getDetailsForUsbDevice(JNIEnv *env, jobject thiz,
+                                                                     jint inFd) {
+    int fd = dup(inFd);
+    // TODO: implement getDetailsForUsbDevice()
 }
