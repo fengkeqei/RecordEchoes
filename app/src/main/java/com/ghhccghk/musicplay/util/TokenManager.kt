@@ -2,6 +2,7 @@ package com.ghhccghk.musicplay.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 
 object TokenManager {
     private const val PREF_NAME = "user_prefs"
@@ -13,6 +14,19 @@ object TokenManager {
 
     fun init(context: Context) {
         prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        // sanitize existing stored dfid if it is the literal "null" or blank
+        try {
+            val existing = prefs?.getString(KEY_DFID, null)
+            if (!existing.isNullOrBlank() && existing == "null") {
+                prefs?.edit()?.remove(KEY_DFID)?.apply()
+                Log.i("TokenManager", "Removed invalid stored dfid value: '$existing'")
+            } else if (existing.isNullOrBlank()) {
+                // also remove empty strings
+                prefs?.edit()?.remove(KEY_DFID)?.apply()
+            }
+        } catch (t: Throwable) {
+            Log.w("TokenManager", "Failed to sanitize stored dfid", t)
+        }
     }
 
     fun saveToken(token: String) {
@@ -23,7 +37,15 @@ object TokenManager {
         prefs?.edit()?.putString(KEY_ID, id)?.apply()
     }
 
-    fun saveDfid(dfid: String) {
+    // Accept nullable and avoid saving literal "null" or blank values
+    fun saveDfid(dfid: String?) {
+        // capture caller info for diagnostics
+        val stack = Exception().stackTrace.drop(1).take(6).joinToString(" -> ") { "${it.className}.${it.methodName}:${it.lineNumber}" }
+        if (dfid.isNullOrBlank() || dfid == "null") {
+            Log.w("TokenManager", "Refusing to save empty or 'null' dfid: $dfid; caller: $stack")
+            return
+        }
+        Log.i("TokenManager", "Saving dfid: $dfid; caller: $stack")
         prefs?.edit()?.putString(KEY_DFID, dfid)?.apply()
     }
 
@@ -36,7 +58,12 @@ object TokenManager {
     }
 
     fun getDfid(): String? {
-        return prefs?.getString(KEY_DFID, null)
+        val v = prefs?.getString(KEY_DFID, null)
+        return if (v.isNullOrBlank() || v == "null") {
+            null
+        } else {
+            v
+        }
 
     }
 
