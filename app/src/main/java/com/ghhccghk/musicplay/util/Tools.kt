@@ -634,11 +634,12 @@ object Tools {
 
     fun isFirstRun(context: Context): Boolean {
         val prefs = context.getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val directory = File(context.filesDir, "nodejs_files")
         val isFirst = prefs.getBoolean("is_first_run", true)
         if (isFirst) {
             prefs.edit().putBoolean("is_first_run", false).apply()
         }
-        return isFirst
+        return isFirst && directory.exists()
     }
 
 

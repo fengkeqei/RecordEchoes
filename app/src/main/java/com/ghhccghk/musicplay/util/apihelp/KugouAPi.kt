@@ -1,6 +1,5 @@
 package com.ghhccghk.musicplay.util.apihelp
 
-import android.util.Log
 import androidx.core.net.toUri
 import com.ghhccghk.musicplay.MainActivity
 import com.ghhccghk.musicplay.data.dfid.DfidData
@@ -17,6 +16,7 @@ object KugouAPi {
     val apiaddress = "http:/127.0.0.1:9600"
     var token : String? = null
     var userid : String? = null
+    var dfid: String? = null
     private val moshi = Moshi.Builder()
         .addLast(KotlinJsonAdapterFactory()) // 如果没用 codegen，这个是必须的
         .build()
@@ -24,6 +24,13 @@ object KugouAPi {
     fun init() {
         token = TokenManager.getToken()
         userid = TokenManager.getUserId()
+        if ( TokenManager.getDfid() == null ){
+            val getid = getDfid()?.data?.dfid
+            TokenManager.saveDfid(getid.toString())
+            dfid = getid
+        } else {
+            dfid = TokenManager.getDfid()
+        }
 
     }
 
@@ -50,9 +57,13 @@ object KugouAPi {
                 .value(TokenManager.getUserId().toString())
                 .build()
 
-            Log.d(a.toString(),b.toString())
-
-            return cookieStore[url] ?: listOf(a,b)
+            val c = Cookie.Builder()
+                .domain(url.host)
+                .path("/")
+                .name("dfid")
+                .value(TokenManager.getDfid().toString())
+                .build()
+            return cookieStore[url] ?: listOf(a,b,c)
         }
     }
 
@@ -230,8 +241,7 @@ object KugouAPi {
     /** 更新 token 登录信息 */
     fun updateToken(token: String,userid: String): String?{
         val url = "$apiaddress/login/token".toUri().buildUpon().apply {
-            token.let { appendQueryParameter("token", it.toString()) }
-            userid.let { appendQueryParameter("userid", it.toString()) }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=${userid}") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
         client.newCall(request).execute().use { response ->
@@ -250,7 +260,7 @@ object KugouAPi {
     fun getDfid(): DfidData? {
         val dfidAdapter = moshi.adapter(DfidData::class.java)
         val url = "$apiaddress/register/dev".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
 
         val request = Request.Builder().url(url).build()
@@ -278,7 +288,7 @@ object KugouAPi {
         val url = "$apiaddress/user/playlist".toUri().buildUpon().apply {
             page?.let { appendQueryParameter("page", it.toString()) }
             pageSize?.let { appendQueryParameter("pageSize", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -296,7 +306,7 @@ object KugouAPi {
     /** 获取用户关注 */
     fun getUserFollow(): String? {
         val url = "$apiaddress/user/follow".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -354,7 +364,7 @@ object KugouAPi {
         val url = "$apiaddress/video/collect".toUri().buildUpon().apply {
             page?.let { appendQueryParameter("page", it.toString()) }
             pageSize?.let { appendQueryParameter("pageSize", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -373,7 +383,7 @@ object KugouAPi {
     fun getUserVideoLove(pageSize: Int? = null): String?{
         val url = "$apiaddress/video/love".toUri().buildUpon().apply {
             pageSize?.let { appendQueryParameter("pageSize", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -391,7 +401,7 @@ object KugouAPi {
     fun getUserListen(type: Int? = null): String? {
         val url = "$apiaddress/user/listen".toUri().buildUpon().apply {
             type?.let { appendQueryParameter("type", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -410,7 +420,7 @@ object KugouAPi {
     fun getUserHistory(bp: String? = null): String? {
         val url = "$apiaddress/user/history".toUri().buildUpon().apply {
             bp?.let { appendQueryParameter("vp", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -429,7 +439,7 @@ object KugouAPi {
     fun getUserLastMusic(pageSize: Int? = null): String? {
         val url = "$apiaddress/user/history".toUri().buildUpon().apply {
             pageSize?.let { appendQueryParameter("pagesize", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -452,7 +462,7 @@ object KugouAPi {
             appendQueryParameter("name", name)
             appendQueryParameter("list_create_userid", list_create_userid)
             appendQueryParameter("list_create_listid", list_create_listid)
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
             if (type == 0){
                 is_pri?.let { appendQueryParameter("is_pri", it.toString()) }
             }
@@ -477,7 +487,7 @@ object KugouAPi {
         val url = "$apiaddress/playlist/tracks/del".toUri().buildUpon().apply {
             appendQueryParameter("listid", listid)
             appendQueryParameter("fileids", fileids)
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -497,7 +507,7 @@ object KugouAPi {
             type?.let { appendQueryParameter("type", it.toString()) }
             pageSize?.let { appendQueryParameter("pageSize", it.toString()) }
             page?.let { appendQueryParameter("page", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -515,7 +525,7 @@ object KugouAPi {
     fun getAlbum(id: String): String? {
         val url = "$apiaddress/album".toUri().buildUpon().apply {
             appendQueryParameter("type",id)
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -533,7 +543,7 @@ object KugouAPi {
     fun getAlbumInSongs(id: String): String? {
         val url = "$apiaddress/album/songs".toUri().buildUpon().apply {
             appendQueryParameter("type",id)
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -557,7 +567,7 @@ object KugouAPi {
             free_part?.let { appendQueryParameter("free_part",it) }
             album_audio_id?.let { appendQueryParameter("album_audio_id",it) }
             quality?.let { appendQueryParameter("quality",it) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
             //userid?.let { appendQueryParameter("userid", it.toString()) }
         }.build().toString()
         val request = Request.Builder().url(url).build()
@@ -579,7 +589,7 @@ object KugouAPi {
             appendQueryParameter("hash",hash)
             free_part?.let { appendQueryParameter("free_part",it) }
             album_audio_id?.let { appendQueryParameter("album_audio_id",it) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -597,7 +607,7 @@ object KugouAPi {
     fun getSongClimax(hash: String): String? {
         val url = "$apiaddress/song/climax".toUri().buildUpon().apply {
             appendQueryParameter("hash",hash)
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -620,7 +630,7 @@ object KugouAPi {
             page?.let { appendQueryParameter("page",it.toString()) }
             pageSize?.let { appendQueryParameter("pageSize",it.toString()) }
             type?.let { appendQueryParameter("type",it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -638,7 +648,7 @@ object KugouAPi {
 
     fun getSearchdefault(): String? {
         val url = "$apiaddress/search/default".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -656,7 +666,7 @@ object KugouAPi {
 
     fun getSearchhot(): String? {
         val url = "$apiaddress/search/hot".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -677,7 +687,7 @@ object KugouAPi {
 
         val url = "$apiaddress/search/suggest".toUri().buildUpon().apply {
             appendQueryParameter("keywords",key)
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
             if (albumTipCount != null){
                 appendQueryParameter("albumTipCount",albumTipCount)
             }
@@ -729,7 +739,7 @@ object KugouAPi {
             hash?.let { appendQueryParameter("hash",it) }
             album_audio_id?.let { appendQueryParameter("album_audio_id ",it )}
             man?.let { appendQueryParameter("man ",it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -767,7 +777,7 @@ object KugouAPi {
             appendQueryParameter("accesskey",accesskey)
             fmt?.let { appendQueryParameter("fmt",it.toString() )}
             appendQueryParameter("decode", decode.toString())
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -784,7 +794,7 @@ object KugouAPi {
     }
     fun getPlayListTag(): String? {
         val url = "$apiaddress/playlist/tags".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -805,7 +815,7 @@ object KugouAPi {
             appendQueryParameter("category_id",category_id)
             withsong?.let { appendQueryParameter("withsong ",withsong )}
             withtag?.let { appendQueryParameter("withtag ",withtag )}
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -823,7 +833,7 @@ object KugouAPi {
 
     fun getPlayListTheme(): String? {
         val url = "$apiaddress/theme/playlist".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -843,7 +853,7 @@ object KugouAPi {
         val url = "$apiaddress/playlist/effect".toUri().buildUpon().apply {
             page?.let { appendQueryParameter("page ",it.toString() )}
             pageSize?.let { appendQueryParameter("pagesize ",it.toString() )}
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -860,7 +870,7 @@ object KugouAPi {
     /** 获取歌单详情 */
     fun getPlayListDetail(ids: String): String? {
         val url = "$apiaddress/playlist/detail?ids=$ids".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -881,7 +891,7 @@ object KugouAPi {
             appendQueryParameter("id",ids)
             page?.let { appendQueryParameter("page", it.toString()) }
             pageSize?.let { appendQueryParameter("pagesize", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
 
         }.build().toString()
         val request = Request.Builder().url(url).build()
@@ -905,7 +915,7 @@ object KugouAPi {
             appendQueryParameter("listid",ids)
             page?.let { appendQueryParameter("page", it.toString()) }
             pageSize?.let { appendQueryParameter("pagesize", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
 
         }.build().toString()
         val request = Request.Builder().url(url).build()
@@ -929,7 +939,7 @@ object KugouAPi {
             appendQueryParameter("ids",ids)
             page?.let { appendQueryParameter("page", it.toString()) }
             pageSize?.let { appendQueryParameter("pagesize", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
 
         }.build().toString()
         val request = Request.Builder().url(url).build()
@@ -951,7 +961,7 @@ object KugouAPi {
 
         val url = "$apiaddress/theme/playlist/track".toUri().buildUpon().apply {
             appendQueryParameter("theme_id",theme_id)
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
 
         }.build().toString()
         val request = Request.Builder().url(url).build()
@@ -970,7 +980,7 @@ object KugouAPi {
     /** 获取主题音乐 */
     fun getThemeMuisc(): String? {
         val url = "$apiaddress/theme/music".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -986,7 +996,7 @@ object KugouAPi {
     /** 获取主题音乐详情 */
     fun getThemeMuiscDetail(id: String): String? {
         val url = "$apiaddress/theme/music/detail?id=$id".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -1004,7 +1014,7 @@ object KugouAPi {
     fun getSongcard(id : String = "1"): String? {
         val url = "$apiaddress/top/card".toUri().buildUpon().apply {
             appendQueryParameter("card_id", id)
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -1026,7 +1036,7 @@ object KugouAPi {
             album_id?.let { appendQueryParameter("album_id", it) }
             album_audio_id?.let { appendQueryParameter("album_audio_id", it) }
             count?.let { appendQueryParameter("count", it) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
 
         val request = Request.Builder().url(url).build()
@@ -1043,7 +1053,7 @@ object KugouAPi {
     /** 获取音乐信息 */
     fun getMuiscInfo(hash: String): String? {
         val url = "$apiaddress/audio?hash=$hash".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -1082,7 +1092,7 @@ object KugouAPi {
             show_type?.let { appendQueryParameter("show_type", it.toString()) }
             sort?.let { appendQueryParameter("sort", it.toString()) }
             type?.let { appendQueryParameter("type", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -1100,7 +1110,7 @@ object KugouAPi {
     fun getSongDetail(hash: String): String? {
         val url = "$apiaddress/privilege/lite".toUri().buildUpon().apply {
             appendQueryParameter("hash", hash)
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -1126,7 +1136,7 @@ object KugouAPi {
         val url = "$apiaddress/krm/audio".toUri().buildUpon().apply {
             appendQueryParameter("album_audio_id", album_audio_id)
             fileids?.let { appendQueryParameter("fileids", it.toString())  }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
 
         val request = Request.Builder().url(url).build()
@@ -1173,7 +1183,7 @@ object KugouAPi {
             mode?.let { appendQueryParameter("mode", it.toString()) }
             action?.let { appendQueryParameter("action", it.toString()) }
             song_pool_id?.let { appendQueryParameter("song_pool_id", it.toString()) }
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
 
         val request = Request.Builder().url(url).build()
@@ -1193,7 +1203,7 @@ object KugouAPi {
     /** 领取 VIP（需要登陆，该接口为测试接口,仅限概念版使用） */
     fun getlitevip(): String? {
         val url = "$apiaddress/youth/vip".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -1209,7 +1219,7 @@ object KugouAPi {
     /** 领取 一天 VIP（需要登陆，该接口为测试接口,仅限概念版使用） */
     fun getlitevipday(): String? {
         val url = "$apiaddress/youth/day/vip".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -1225,7 +1235,7 @@ object KugouAPi {
     /** 获取当月已领取 VIP 天数（需要登陆，该接口为测试接口,仅限概念版使用） */
     fun getlitevipdayok(): String? {
         val url = "$apiaddress/youth/month/vip/record".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
@@ -1241,7 +1251,7 @@ object KugouAPi {
     /** 获取已领取 VIP 状态（需要登陆，该接口为测试接口,仅限概念版使用） */
     fun getlitevipok(): String? {
         val url = "$apiaddress/youth/union/vip".toUri().buildUpon().apply {
-            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid") }
+            token?.let { appendQueryParameter("cookie", "token=$it;userid=$userid;dfid=$dfid") }
         }.build().toString()
         val request = Request.Builder().url(url).build()
 
