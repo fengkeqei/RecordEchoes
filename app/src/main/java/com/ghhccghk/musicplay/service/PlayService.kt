@@ -361,24 +361,55 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
                                                     newmedia!!
                                                 )
                                             }
-                                            if (status_bar_lyrics) {// 请注意，非常建议您设置包名，这是判断当前播放应用的唯一途径！！
-                                                if (translationResult != "null"){
-                                                    SuperLyricPush.onSuperLyric(
-                                                        SuperLyricData()
-                                                            .setLyric(lyricResult) // 设置歌词
-                                                            .setBase64Icon(base64)
-                                                            .setPackageName(BuildConfig.APPLICATION_ID) // 设置本软件包名
-                                                            .setMediaMetadata(metadata)
-                                                            .setTranslation(translationResult)
-                                                    ) // 发送歌词
-                                                } else {
-                                                    SuperLyricPush.onSuperLyric(
-                                                        SuperLyricData()
-                                                            .setLyric(lyricResult) // 设置歌词
-                                                            .setBase64Icon(base64)
-                                                            .setMediaMetadata(metadata)
-                                                            .setPackageName(BuildConfig.APPLICATION_ID) // 设置本软件包名
-                                                    ) // 发送歌词
+                                            if (status_bar_lyrics) {
+                                                when (newLine) {// 请注意，非常建议您设置包名，这是判断当前播放应用的唯一途径！！
+                                                    is SyncedLine -> {
+                                                        if (translationResult != "null") {
+                                                            SuperLyricPush.onSuperLyric(
+                                                                SuperLyricData()
+                                                                    .setLyric(lyricResult) // 设置歌词
+                                                                    .setBase64Icon(base64)
+                                                                    .setPackageName(BuildConfig.APPLICATION_ID) // 设置本软件包名
+                                                                    .setMediaMetadata(metadata)
+                                                                    .setTranslation(
+                                                                        translationResult
+                                                                    )
+                                                            ) // 发送歌词
+                                                        } else {
+                                                            SuperLyricPush.onSuperLyric(
+                                                                SuperLyricData()
+                                                                    .setLyric(lyricResult) // 设置歌词
+                                                                    .setBase64Icon(base64)
+                                                                    .setMediaMetadata(metadata)
+                                                                    .setPackageName(BuildConfig.APPLICATION_ID) // 设置本软件包名
+                                                            ) // 发送歌词
+                                                        }
+                                                    }
+                                                    is KaraokeLine -> {
+                                                        if (translationResult != "null") {
+                                                            SuperLyricPush.onSuperLyric(
+                                                                SuperLyricData()
+                                                                    .setLyric(lyricResult) // 设置歌词
+                                                                    .setBase64Icon(base64)
+                                                                    .setEnhancedLRCData(newLine.toEnhancedLRCList().toTypedArray())
+                                                                    .setPackageName(BuildConfig.APPLICATION_ID) // 设置本软件包名
+                                                                    .setMediaMetadata(metadata)
+                                                                    .setTranslation(
+                                                                        translationResult
+                                                                    )
+                                                            ) // 发送歌词
+                                                        } else {
+                                                            SuperLyricPush.onSuperLyric(
+                                                                SuperLyricData()
+                                                                    .setLyric(lyricResult) // 设置歌词
+                                                                    .setBase64Icon(base64)
+                                                                    .setMediaMetadata(metadata)
+                                                                    .setEnhancedLRCData(newLine.toEnhancedLRCList().toTypedArray())
+                                                                    .setPackageName(BuildConfig.APPLICATION_ID) // 设置本软件包名
+                                                            ) // 发送歌词
+                                                        }
+
+                                                    }
                                                 }
                                             }
 
@@ -1373,6 +1404,16 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
             })
         } else {
             Log.e(TAG, "session id is 0? why????? THIS MIGHT BREAK EQUALIZER")
+        }
+    }
+
+    fun KaraokeLine.toEnhancedLRCList(): List<SuperLyricData.EnhancedLRCData> {
+        return syllables.map { syllable ->
+            SuperLyricData.EnhancedLRCData(
+                syllable.content,
+                syllable.start,
+                syllable.end
+            )
         }
     }
 
