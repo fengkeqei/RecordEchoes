@@ -289,10 +289,25 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
 
                                 liveTime = mediaSession.player.currentPosition
 
-//                                val lrcEntries = MediaViewModelObject.lrcEntries.value
+
 
                                 val nextIndex = newlyric.lines.indexOfFirst { line ->
                                     line.start >= liveTime
+                                }
+
+                                bitrateFetcher.launch {
+                                    withContext(Dispatchers.IO) {
+                                        // 直接从播放器读取当前位置（毫秒），避免使用外层捕获的变量导致偏差
+                                        val nowMs = liveTime.toInt()
+                                        Log.v(
+                                            TAG,
+                                            "Triggering LyricSyncManager.sync with nowMs=$nowMs"
+                                        )
+                                        LyricSyncManager.getInstance(
+                                            this@PlayService,
+                                            MediaViewModelObject.newLrcEntries.value
+                                        ).sync(nowMs)
+                                    }
                                 }
 
                                 val sendLyric = fun() {
@@ -331,15 +346,6 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
 
                                         if (playbar.visibility != View.GONE && play_bar_lyrics) {
                                             playbar.findViewById<TextView>(R.id.playbar_artist).text = lyricResult
-                                        }
-
-                                        bitrateFetcher.launch {
-                                            withContext(Dispatchers.IO){
-                                                LyricSyncManager(
-                                                    this@PlayService,
-                                                    MediaViewModelObject.newLrcEntries.value
-                                                ).sync(currentLyricIndex)
-                                            }
                                         }
 
                                         if (car_lyrics || status_bar_lyrics) {
@@ -1418,3 +1424,4 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
     }
 
 }
+

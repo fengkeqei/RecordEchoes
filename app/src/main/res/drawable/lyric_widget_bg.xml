@@ -1,0 +1,8 @@
+<!-- 圆角背景：使用 Material 风格的表面颜色并带有较大圆角 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- 这里使用半透明黑色作为示例，项目中可替换为 theme color -->
+    <solid android:color="#CC000000" />
+    <corners android:radius="12dp" />
+</shape>
+
