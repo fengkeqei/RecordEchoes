@@ -47,6 +47,7 @@ import com.ghhccghk.musicplay.ui.components.GlobalPlaylistBottomSheetController
 import com.ghhccghk.musicplay.ui.components.PlaylistBottomSheet
 import com.ghhccghk.musicplay.util.NodeBridge
 import com.ghhccghk.musicplay.util.SmartImageCache
+import com.ghhccghk.musicplay.util.TokenManager
 import com.ghhccghk.musicplay.util.Tools.isFirstRun
 import com.ghhccghk.musicplay.util.ZipExtractor
 import com.ghhccghk.musicplay.util.apihelp.KugouAPi
@@ -114,10 +115,13 @@ class MainActivity : AppCompatActivity() {
         SmartImageCache.init(applicationContext, maxSize = cacheSizeBytes)
 
         if (isFirstRun(this)) {
-            ZipExtractor.extractZipOnFirstRun(this, "api_js.zip", "nodejs_files")
-            start()
+            ZipExtractor.extractZipOnFirstRun(this, "api_js.zip", "nodejs_files"){
+                TokenManager.init(this)
+                start()
+            }
         } else {
             start()
+            TokenManager.init(this)
         }
 
         val navController = findNavController(R.id.nav_host_fragment_activity_main)

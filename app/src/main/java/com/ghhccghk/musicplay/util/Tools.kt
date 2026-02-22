@@ -26,7 +26,6 @@ package com.ghhccghk.musicplay.util
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -633,13 +632,8 @@ object Tools {
 
 
     fun isFirstRun(context: Context): Boolean {
-        val prefs = context.getSharedPreferences("app_prefs", MODE_PRIVATE)
         val directory = File(context.filesDir, "nodejs_files")
-        val isFirst = prefs.getBoolean("is_first_run", true)
-        if (isFirst) {
-            prefs.edit().putBoolean("is_first_run", false).apply()
-        }
-        return isFirst && directory.exists()
+        return directory.exists()
     }
 
 

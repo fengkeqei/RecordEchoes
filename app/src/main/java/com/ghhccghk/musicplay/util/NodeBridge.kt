@@ -26,7 +26,7 @@ object NodeBridge {
         if (BuildConfig.DEBUG) {
             Log.d("KugouApi", msg)
         }
-        if (msg.contains("server running @ http://localhost:9600")) {
+        if (msg.contains("server running")) {
             // 发送广播通知服务已启动
             val intent = Intent(ACTION_NODE_READY)
             LocalBroadcastManager.getInstance(MainActivity.lontext).sendBroadcast(intent)

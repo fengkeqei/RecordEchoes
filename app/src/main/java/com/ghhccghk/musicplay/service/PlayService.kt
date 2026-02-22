@@ -98,7 +98,9 @@ import com.ghhccghk.musicplay.util.SmartImageCache
 import com.ghhccghk.musicplay.util.Tools
 import com.ghhccghk.musicplay.util.Tools.getBitrate
 import com.ghhccghk.musicplay.util.Tools.getStringStrict
+import com.ghhccghk.musicplay.util.Tools.isFirstRun
 import com.ghhccghk.musicplay.util.Tools.toFramework
+import com.ghhccghk.musicplay.util.ZipExtractor
 import com.ghhccghk.musicplay.util.apihelp.KugouAPi
 import com.ghhccghk.musicplay.util.exoplayer.CircularShuffleOrder
 import com.ghhccghk.musicplay.util.exoplayer.EndedWorkaroundPlayer
@@ -456,12 +458,24 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
         LocalBroadcastManager.getInstance(this).registerReceiver(nodeReadyReceiver, filter)
         serviceScope.launch {
             withContext(Dispatchers.IO) {
-                try {
-                    NodeBridge.startNode() // 这里调用 native 方法
-                    isNodeRunning = true
-                } catch (e: Exception) {
-                    isNodeRunning = false
-                    isNodeRunError = e.toString()
+                if (isFirstRun(applicationContext)) {
+                    try {
+                        NodeBridge.startNode() // 这里调用 native 方法
+                        isNodeRunning = true
+                    } catch (e: Exception) {
+                        isNodeRunning = false
+                        isNodeRunError = e.toString()
+                    }
+                } else {
+                    ZipExtractor.extractZipOnFirstRun(applicationContext, "api_js.zip", "nodejs_files"){
+                        try {
+                            NodeBridge.startNode() // 这里调用 native 方法
+                            isNodeRunning = true
+                        } catch (e: Exception) {
+                            isNodeRunning = false
+                            isNodeRunError = e.toString()
+                        }
+                    }
                 }
             }
         }

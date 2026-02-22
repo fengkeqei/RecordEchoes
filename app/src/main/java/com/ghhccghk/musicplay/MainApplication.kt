@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.media3.common.util.UnstableApi
-import com.ghhccghk.musicplay.util.TokenManager
 import com.ghhccghk.musicplay.util.UrlCacheManager
 import com.ghhccghk.musicplay.util.di.uiModule
 import org.koin.android.ext.koin.androidContext
@@ -23,7 +22,6 @@ class MainApplication: Application() {
         super.onCreate()
         uacManager = UacManager(this)
         UrlCacheManager.init(this)
-        TokenManager.init(this)
         startKoin {
             modules(uiModule)
             androidContext(this@MainApplication)

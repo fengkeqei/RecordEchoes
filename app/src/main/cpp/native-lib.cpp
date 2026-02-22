@@ -57,6 +57,7 @@ Java_com_ghhccghk_musicplay_util_NodeBridge_startNode(JNIEnv *env, jobject) {
     });
     reader.detach();
     setenv("platform","lite", 1);
+    setenv("PORT","9600",1);
     const char *argv[] = {
             "node",
             "/data/data/com.ghhccghk.musicplay/files/nodejs_files/api_js/app.js"
