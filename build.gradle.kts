@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.navigationUi) apply false
     alias(libs.plugins.ksp)
     id("androidx.baselineprofile") version "1.4.1" apply false
-    id("com.mikepenz.aboutlibraries.plugin") version "13.2.1" apply false
+    id("com.mikepenz.aboutlibraries.plugin") version "14.0.0-b02" apply false
     id("com.osacky.doctor") version "0.12.1"
 }
 

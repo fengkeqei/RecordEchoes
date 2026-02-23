@@ -1,4 +1,4 @@
-
+import com.android.build.api.dsl.ApplicationBuildType
 import com.android.build.gradle.internal.cxx.configure.CmakeProperty
 import com.android.build.gradle.tasks.PackageAndroidArtifact
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -144,14 +144,15 @@ android {
         }
     }
 
-//    buildTypes.forEach {
-//        (it as ApplicationBuildType).run {
-//            vcsInfo {
-//                include = false
-//            }
-//            isCrunchPngs = false // for reproducible builds TODO how much size impact does this have? where are the pngs from? can we use webp?
-//        }
-//    }
+    buildTypes.forEach {
+        (it as ApplicationBuildType).run {
+            vcsInfo {
+                include = false
+            }
+            isCrunchPngs =
+                false // for reproducible builds TODO how much size impact does this have? where are the pngs from? can we use webp?
+        }
+    }
 
 
     compileOptions {
