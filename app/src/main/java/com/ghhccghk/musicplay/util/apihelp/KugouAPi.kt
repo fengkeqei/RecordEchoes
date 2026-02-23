@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import com.ghhccghk.musicplay.MainActivity
 import com.ghhccghk.musicplay.data.dfid.DfidData
+import com.ghhccghk.musicplay.util.CookieManager
 import com.ghhccghk.musicplay.util.TokenManager
 import com.ghhccghk.musicplay.util.others.DeviceHelper
 import com.squareup.moshi.Moshi
@@ -90,7 +91,17 @@ object KugouAPi {
         private val cookieStore: MutableMap<HttpUrl, List<Cookie>> = mutableMapOf()
 
         override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+            // 保存到内存
             cookieStore[url] = cookies
+            // 保存到持久化存储
+            if (cookies.isNotEmpty()) {
+                try {
+                    CookieManager.saveCookies(cookies)
+                    Log.d("KugouAPi", "Saved ${cookies.size} cookies to persistent storage")
+                } catch (e: Exception) {
+                    Log.w("KugouAPi", "Failed to save cookies to persistent storage", e)
+                }
+            }
         }
 
         override fun loadForRequest(url: HttpUrl): List<Cookie> {
@@ -101,6 +112,15 @@ object KugouAPi {
             val dfidVal = TokenManager.getDfid()
 
             val cookies = mutableListOf<Cookie>()
+            // 先添加持久化存储中的 cookies
+            cookies.addAll(
+                try {
+                    CookieManager.loadCookies(url)
+                } catch (e: Exception) {
+                    Log.w("KugouAPi", "Failed to load cookies from persistent storage", e)
+                    emptyList()
+                }
+            )
 
             tokenVal?.let {
                 cookies.add(
@@ -374,7 +394,9 @@ object KugouAPi {
             Log.e("KugouAPi", "Network error calling getDfid", e)
             null
         }
-    }   /** 获取用户额外信息 */
+    }
+
+    /** 获取用户额外信息 */
     fun getUserDetail(): String?{
         val url = "$apiaddress/user/detail".toUri().buildUpon().apply {
             buildCookie()?.let { appendQueryParameter("cookie", it) }
