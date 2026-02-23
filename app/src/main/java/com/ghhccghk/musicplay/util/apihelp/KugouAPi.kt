@@ -30,7 +30,7 @@ object KugouAPi {
         TokenManager.getToken()?.let { parts.add("token=$it") }
         TokenManager.getUserId()?.let { parts.add("userid=$it") }
         TokenManager.getDfid()?.let { parts.add("dfid=$it") }
-        DeviceHelper.Hardware.getDeviceName().let { "KUGOU_API_DEV=$it" }
+        DeviceHelper.Hardware.getModelName().let { "KUGOU_API_DEV=$it" }
         return if (parts.isEmpty()) null else parts.joinToString(";")
     }
 

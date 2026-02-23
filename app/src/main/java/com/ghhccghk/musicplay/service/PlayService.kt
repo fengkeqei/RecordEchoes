@@ -110,6 +110,7 @@ import com.ghhccghk.musicplay.util.exoplayer.MeiZuLyricsMediaNotificationProvide
 import com.ghhccghk.musicplay.util.exoplayer.isManualNotificationUpdate
 import com.ghhccghk.musicplay.util.getBooleanStrict
 import com.ghhccghk.musicplay.util.getIntStrict
+import com.ghhccghk.musicplay.util.others.DeviceHelper
 import com.ghhccghk.musicplay.util.others.PlaylistRepository
 import com.ghhccghk.musicplay.util.others.toMediaItem
 import com.google.common.collect.ImmutableList
@@ -519,7 +520,7 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
             withContext(Dispatchers.IO) {
                 if (isFirstRun(applicationContext)) {
                     try {
-                        NodeBridge.startNode() // 这里调用 native 方法
+                        NodeBridge.startNode(DeviceHelper.Hardware.getModelName()) // 这里调用 native 方法
                         isNodeRunning = true
                     } catch (e: Exception) {
                         isNodeRunning = false
@@ -528,7 +529,7 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
                 } else {
                     ZipExtractor.extractZipOnFirstRun(applicationContext, "api_js.zip", "nodejs_files"){
                         try {
-                            NodeBridge.startNode() // 这里调用 native 方法
+                            NodeBridge.startNode(DeviceHelper.Hardware.getModelName()) // 这里调用 native 方法
                             isNodeRunning = true
                         } catch (e: Exception) {
                             isNodeRunning = false

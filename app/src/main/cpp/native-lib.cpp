@@ -39,13 +39,15 @@ void sendLogToKotlin(const std::string &message) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_ghhccghk_musicplay_util_NodeBridge_startNode(JNIEnv *env, jobject) {
+Java_com_ghhccghk_musicplay_util_NodeBridge_startNode(JNIEnv *env, jclass clazz, jstring devName) {
     int pipefd[2];
     pipe(pipefd);
 
     dup2(pipefd[1], STDOUT_FILENO);
     dup2(pipefd[1], STDERR_FILENO);
     close(pipefd[1]);
+
+    const char *devNameStr = env->GetStringUTFChars(devName, nullptr);
 
     std::thread reader([fd = pipefd[0]] {
         char buffer[1024];
@@ -58,10 +60,13 @@ Java_com_ghhccghk_musicplay_util_NodeBridge_startNode(JNIEnv *env, jobject) {
     reader.detach();
     setenv("platform","lite", 1);
     setenv("PORT","9600",1);
+    setenv("KUGOU_API_DEV", devNameStr, 1);
     const char *argv[] = {
             "node",
             "/data/data/com.ghhccghk.musicplay/files/nodejs_files/api_js/app.js"
     };
     int argc = sizeof(argv) / sizeof(argv[0]);
     node::Start(argc, const_cast<char **>(argv));
+
+    env->ReleaseStringUTFChars(devName, devNameStr);
 }

@@ -18,7 +18,7 @@ object NodeBridge {
 
     // 声明本地方法
     @JvmStatic
-    external fun startNode()
+    external fun startNode(deviceName: String)
 
     // Kotlin 中的静态方法，用于日志输出
     @JvmStatic

@@ -35,8 +35,6 @@ object LogManager {
         // 初始化配置管理器
         LogConfigManager.init(appPrivateDir)
 
-        // 检查日志服务
-        IS_LOGGER_ALIVE = LoggerHealthChecker.isLoggerAlive()
     }
 
     @JvmStatic
@@ -64,10 +62,5 @@ object LogManager {
     @JvmStatic
     fun logLevelDesc(): String {
         return LogLevelManager.logLevelDesc(logLevel)
-    }
-
-    @JvmStatic
-    fun fixLSPosedLogService(): String {
-        return LoggerHealthChecker.fixLSPosedLogService()
     }
 }

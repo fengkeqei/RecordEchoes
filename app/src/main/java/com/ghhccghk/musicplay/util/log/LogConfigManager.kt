@@ -18,7 +18,6 @@
  */
 package com.ghhccghk.musicplay.util.log
 
-import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -112,7 +111,6 @@ object LogConfigManager {
     }
 
     private fun getDefaultLogLevel(): Int {
-        val level = mPrefsMap.getStringAsInt("log_level", 3)
-        return LogLevelManager.getEffectiveLogLevel(level)
+        return 0
     }
 }

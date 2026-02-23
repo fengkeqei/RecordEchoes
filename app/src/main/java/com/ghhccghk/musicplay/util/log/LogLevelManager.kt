@@ -18,10 +18,9 @@
  */
 package com.ghhccghk.musicplay.util.log
 
-import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi.isBeta
-import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi.isCanary
-import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi.isRelease
-import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap
+import com.ghhccghk.musicplay.util.others.ProjectApi.isBeta
+import com.ghhccghk.musicplay.util.others.ProjectApi.isCanary
+import com.ghhccghk.musicplay.util.others.ProjectApi.isRelease
 
 /**
  * 日志级别管理器
@@ -46,11 +45,6 @@ object LogLevelManager {
         return level
     }
 
-    @JvmStatic
-    fun getCurrentLogLevel(): Int {
-        val level = mPrefsMap.getStringAsInt("log_level", 3)
-        return getEffectiveLogLevel(level)
-    }
 
     @JvmStatic
     fun logLevelDesc(level: Int): String {
