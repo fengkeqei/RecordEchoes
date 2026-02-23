@@ -1,5 +1,4 @@
 
-import com.android.build.api.dsl.ApplicationBuildType
 import com.android.build.gradle.internal.cxx.configure.CmakeProperty
 import com.android.build.gradle.tasks.PackageAndroidArtifact
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -12,15 +11,14 @@ val buildTime = System.currentTimeMillis()
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.navigationUi) apply false
+    alias(libs.plugins.navigationUi)
     alias(libs.plugins.ksp)
     alias(libs.plugins.serialization)
     kotlin("plugin.parcelize")
     id("com.mikepenz.aboutlibraries.plugin")
-    id("androidx.baselineprofile")
+//    id("androidx.baselineprofile")
 }
 
 android {
@@ -146,27 +144,19 @@ android {
         }
     }
 
-    buildTypes.forEach {
-        (it as ApplicationBuildType).run {
-            vcsInfo {
-                include = false
-            }
-            isCrunchPngs = false // for reproducible builds TODO how much size impact does this have? where are the pngs from? can we use webp?
-        }
-    }
+//    buildTypes.forEach {
+//        (it as ApplicationBuildType).run {
+//            vcsInfo {
+//                include = false
+//            }
+//            isCrunchPngs = false // for reproducible builds TODO how much size impact does this have? where are the pngs from? can we use webp?
+//        }
+//    }
 
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
-    }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
-            optIn.add("-Xno-param-assertions")
-            optIn.add("-Xno-call-assertions")
-            optIn.add("-Xno-receiver-assertions")
-        }
     }
     buildFeatures {
         viewBinding = true
@@ -183,12 +173,20 @@ android {
         compose = true
     }
 
-    ksp {
-        arg("room.schemaLocation", project.layout.projectDirectory.dir("schemas").asFile.absolutePath)
-    }
-
 }
 
+ksp {
+    arg("room.schemaLocation", project.layout.projectDirectory.dir("schemas").asFile.absolutePath)
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+        optIn.add("-Xno-param-assertions")
+        optIn.add("-Xno-call-assertions")
+        optIn.add("-Xno-receiver-assertions")
+    }
+}
 
 base {
     archivesName.set("Record_Echoes-${android.defaultConfig.versionName}${android.defaultConfig.versionNameSuffix ?: ""}-$buildTime")
@@ -201,9 +199,9 @@ androidComponents {
     }
 }
 
-baselineProfile {
-    dexLayoutOptimization = true
-}
+//baselineProfile {
+//    dexLayoutOptimization = true
+//}
 
 aboutLibraries {
     offlineMode = false

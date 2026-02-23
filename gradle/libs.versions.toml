@@ -1,9 +1,9 @@
 [versions]
-aboutlibrariesComposeM3 = "13.1.0"
+aboutlibrariesComposeM3 = "13.2.1"
 concurrentFuturesKtx = "1.3.0"
 hiddenapibypass = "6.1"
 ksp = "2.3.4"
-activityCompose = "1.12.2"
+activityCompose = "1.12.4"
 agp = "9.0.1"
 converterGson = "3.0.0"
 core = "3.5.4"
@@ -11,7 +11,7 @@ cupertinoIconsExtended = "0.1.0-alpha04"
 glance = "1.2.0-rc01"
 glide = "5.0.5"
 gson = "2.13.2"
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -19,7 +19,7 @@ espressoCore = "3.7.0"
 appcompat = "1.7.1"
 kotlinxCoroutinesAndroid = "1.10.2"
 kotlinxCoroutinesCore = "1.10.2"
-kotlinxSerializationJson = "1.9.0"
+kotlinxSerializationJson = "1.10.0"
 lifecycleViewmodel = "2.10.0"
 lyricsCore = "0.4.2"
 lyricsUi = "1.0.10"
@@ -29,7 +29,7 @@ mediarouter = "1.8.1"
 moshi = "1.15.2"
 moshiKotlin = "1.15.2"
 moshiKotlinCodegen = "1.15.2"
-navigationUiKtx = "2.9.6"
+navigationUiKtx = "2.9.7"
 okhttp = "5.3.2"
 paletteKtx = "1.0.0"
 retrofit = "3.0.0"
@@ -38,14 +38,15 @@ rxandroid = "2.1.1"
 rxjava = "2.2.21"
 superlyricapi = "2.4"
 zxingAndroidEmbedded = "4.3.0"
-animationCoreAndroid = "1.10.0"
-media3CommonKtx = "1.9.0"
+animationCoreAndroid = "1.10.3"
+media3CommonKtx = "1.9.2"
 preferenceKtx = "1.2.1"
-workRuntimeKtx = "2.11.0"
-uiGraphics = "1.10.0"
+workRuntimeKtx = "2.11.1"
+uiGraphics = "1.10.3"
 hyperfocusapi = "2.0"
 material3WindowSizeClass = "1.4.0"
 material3 = "1.4.0"
+runtimeAnnotationJvm = "1.10.3"
 
 
 [libraries]
@@ -120,6 +121,7 @@ koin-bom = { group = "io.insert-koin", name = "koin-bom", version = "4.1.1" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 androidx-material3-window-size-class1 = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3WindowSizeClass" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-runtime-annotation-jvm = { group = "androidx.compose.runtime", name = "runtime-annotation-jvm", version.ref = "runtimeAnnotationJvm" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
