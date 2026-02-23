@@ -141,6 +141,9 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
     MediaLibraryService.MediaLibrarySession.Callback, Player.Listener, AnalyticsListener,
     SharedPreferences.OnSharedPreferenceChangeListener {
 
+    // 保存取消监听的 lambda，以便在服务销毁时移除监听器，避免泄露
+    private var removeNewLrcListener: (() -> Unit)? = null
+
     companion object {
         const val CHANNEL_ID = "audio_player_channel"
         const val NOTIF_ID = 101
@@ -304,15 +307,16 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
                                             "Triggering LyricSyncManager.sync with nowMs=$nowMs"
                                         )
                                         LyricSyncManager.getInstance(
-                                            this@PlayService,
-                                            MediaViewModelObject.newLrcEntries.value
+                                            this@PlayService
                                         ).sync(nowMs)
                                     }
                                 }
 
                                 val sendLyric = fun() {
                                     try {
-                                        val newLine = newlyric.lines[currentLyricIndex]
+                                        val newLine = newlyric.lines.getOrNull(currentLyricIndex)
+                                        if (newLine == null) return
+
                                         val metadata = mediaSession.player.mediaMetadata.toFramework()
 
                                         when (newLine){
@@ -486,6 +490,24 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
         repo = PlaylistRepository(applicationContext)
         handler = Handler(Looper.getMainLooper())
         rgAp = ReplayGainAudioProcessor()
+        // 注册监听，当 newLrcEntries 被设置/替换时触发 LyricSyncManager 更新
+        removeNewLrcListener = MediaViewModelObject.addNewLrcListener { _ ->
+            serviceScope.launch {
+                try {
+                    Log.d(
+                        TAG,
+                        "PlayService received newLrcEntries change - resetting lyric index and updating LyricSyncManager"
+                    )
+                    // 重置索引，避免旧索引在新歌词短行时越界
+                    currentLyricIndex = 0
+                    MainViewModelObject.syncLyricIndex.intValue = -1
+                    LyricSyncManager.getInstance(this@PlayService).updateLyrics()
+                } catch (t: Throwable) {
+                    Log.w(TAG, "Error updating LyricSyncManager on lyric change", t)
+                }
+            }
+        }
+
         val cacheSizeMBa = prefs.getString("image_cache_size", "50")?.toLongOrNull() ?: 950L
 
         val cacheSizeBytesa = cacheSizeMBa * 1024 * 1024
@@ -850,6 +872,9 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
     // alongside with the mediaSession.
     override fun onDestroy() {
         Log.i(TAG, "+onDestroy()")
+        // 取消注册歌词变更监听器
+        removeNewLrcListener?.invoke()
+        removeNewLrcListener = null
         unregisterReceiver(btReceiver)
         prefs.unregisterOnSharedPreferenceChangeListener(this)
         // Important: this must happen before sending stop() as that changes state ENDED -> IDLE
@@ -1014,7 +1039,8 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
                                         it.second.second.buildUpon().setAverageBitrate(bitrate.toInt()).build()
                                     } else it.second.second
                                     putBundle("format", format.toBundle())
-                                } })
+                                }
+                                })
                             )
                         }
                         res.extras.putBundle("sink_format", audioSinkInputFormat?.toBundle())
@@ -1088,6 +1114,12 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
                 .build()
             val lyricss = autoParserLyric.parse(cachedData)
             MediaViewModelObject.newLrcEntries.value = lyricss
+            // 立即触发 LyricSyncManager 刷新，确保 widget/UI 能马上拿到新歌词
+            try {
+                LyricSyncManager.getInstance(this@PlayService).updateLyrics()
+            } catch (t: Throwable) {
+                Log.w(TAG, "Failed to force-update LyricSyncManager after cached load", t)
+            }
         } else {
             serviceScope.launch {
                 if (!MainActivity.isNodeRunning?: false) return@launch
@@ -1171,6 +1203,11 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
             val autoParserLyric = AutoParser.Builder().build()
             val lyricss = autoParserLyric.parse(cached)
             MediaViewModelObject.newLrcEntries.value = lyricss
+            try {
+                LyricSyncManager.getInstance(this@PlayService).updateLyrics()
+            } catch (t: Throwable) {
+                Log.w(TAG, "Failed to force-update LyricSyncManager after cacheAndLoadLyrics", t)
+            }
         }
 
 

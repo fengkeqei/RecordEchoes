@@ -6,12 +6,13 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
+import com.ghhccghk.musicplay.data.objects.MediaViewModelObject
 import com.ghhccghk.musicplay.ui.widgets.LyricGlanceWidget
+import com.ghhccghk.musicplay.ui.widgets.PREF_AGGRESSIVE_SCALE
 import com.ghhccghk.musicplay.ui.widgets.PREF_LINE_CURRENT
 import com.ghhccghk.musicplay.ui.widgets.PREF_LINE_LAST
 import com.ghhccghk.musicplay.ui.widgets.PREF_LINE_NEXT
 import com.ghhccghk.musicplay.ui.widgets.PREF_TYPEWRITER_INDEX
-import com.mocharealm.accompanist.lyrics.core.model.SyncedLyrics
 import com.mocharealm.accompanist.lyrics.core.model.karaoke.KaraokeLine
 import com.mocharealm.accompanist.lyrics.core.model.synced.SyncedLine
 import com.mocharealm.accompanist.lyrics.core.model.synced.toSyncedLine
@@ -19,7 +20,6 @@ import kotlin.math.max
 
 class LyricSyncManager private constructor(
     private val context: Context,
-    private var lyrics: SyncedLyrics
 ) {
 
     companion object {
@@ -31,12 +31,12 @@ class LyricSyncManager private constructor(
         // 每个 widget 最小更新间隔（ms），用于节流频繁更新（逐字每帧可能很快）
         private const val MIN_WIDGET_UPDATE_INTERVAL_MS = 80L
 
-        fun getInstance(context: Context, lyrics: SyncedLyrics): LyricSyncManager {
+        fun getInstance(context: Context): LyricSyncManager {
             return instance ?: synchronized(this) {
-                (instance ?: LyricSyncManager(context.applicationContext, lyrics).also {
+                (instance ?: LyricSyncManager(context.applicationContext).also {
                     instance = it
                 })
-            }.also { it.updateLyrics(lyrics) }
+            }.also { it.updateLyrics() }
         }
     }
 
@@ -72,7 +72,7 @@ class LyricSyncManager private constructor(
         val verbose = Log.isLoggable("LyricSyncManager", Log.VERBOSE)
 
         // 尝试处理 Map 类型（最常见的时间->行映射）
-        val linesObj = lyrics.lines
+        val linesObj = MediaViewModelObject.newLrcEntries.value.lines
         // 调试日志：显示调用与 lines 对象类型（避免不必要的安全调用）
         if (verbose) Log.v(
             "LyricSyncManager",
@@ -395,6 +395,7 @@ class LyricSyncManager private constructor(
                 updateAppWidgetState(context, glanceId) {
                     it[PREF_LINE_LAST] = lastStr
                     it[PREF_LINE_CURRENT] = currentToSend
+                    it[PREF_AGGRESSIVE_SCALE] = true
                     it[PREF_LINE_NEXT] = nextStr
                     it[PREF_TYPEWRITER_INDEX] = typewriterIndex
                 }
@@ -423,8 +424,8 @@ class LyricSyncManager private constructor(
     /**
      * 更新歌词内容（供单例外部调用）
      */
-    fun updateLyrics(newLyrics: SyncedLyrics) {
-        lyrics = newLyrics
+    fun updateLyrics() {
+        val lyrics = MediaViewModelObject.newLrcEntries.value
         // 预计算并缓存结构
         val linesObj = lyrics.lines
         if (linesObj is Map<*, *>) {

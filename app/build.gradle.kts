@@ -246,6 +246,7 @@ tasks.withType<PackageAndroidArtifact> {
 }
 
 dependencies {
+    implementation(project(":hidden-api"))
     implementation(project(":hificore"))
     implementation(project(":misc:alacdecoder"))
     implementation(libs.androidx.core.ktx)

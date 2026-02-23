@@ -41,5 +41,5 @@ include(":misc:audiofxstub")
 include(":misc:audiofxstub2")
 include(":misc:audiofxfwd")
 include(":misc:alacdecoder")
-include(":hificore",":app")
+include(":hidden-api", ":hificore", ":app")
  

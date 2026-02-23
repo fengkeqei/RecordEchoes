@@ -5,6 +5,7 @@ import androidx.core.net.toUri
 import com.ghhccghk.musicplay.MainActivity
 import com.ghhccghk.musicplay.data.dfid.DfidData
 import com.ghhccghk.musicplay.util.TokenManager
+import com.ghhccghk.musicplay.util.others.DeviceHelper
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.Cookie
@@ -29,6 +30,7 @@ object KugouAPi {
         TokenManager.getToken()?.let { parts.add("token=$it") }
         TokenManager.getUserId()?.let { parts.add("userid=$it") }
         TokenManager.getDfid()?.let { parts.add("dfid=$it") }
+        DeviceHelper.Hardware.getDeviceName().let { "KUGOU_API_DEV=$it" }
         return if (parts.isEmpty()) null else parts.joinToString(";")
     }
 
