@@ -115,7 +115,7 @@ object KugouAPi {
             // 先添加持久化存储中的 cookies
             cookies.addAll(
                 try {
-                    CookieManager.loadCookies(url)
+                    CookieManager.loadCookies()
                 } catch (e: Exception) {
                     Log.w("KugouAPi", "Failed to load cookies from persistent storage", e)
                     emptyList()

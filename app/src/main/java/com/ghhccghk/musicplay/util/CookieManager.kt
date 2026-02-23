@@ -3,11 +3,10 @@ package com.ghhccghk.musicplay.util
 import android.content.SharedPreferences
 import android.util.Log
 import com.ghhccghk.musicplay.MainActivity
-import okhttp3.Cookie
-import okhttp3.HttpUrl
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import okhttp3.Cookie
 
 /**
  * 管理 OkHttp Cookies 的持久化存储和加载
@@ -77,10 +76,9 @@ object CookieManager {
 
     /**
      * 从 SharedPreferences 加载 Cookies
-     * @param url 用于过滤和创建 Cookie 对象的 URL
      * @return 加载的 Cookie 列表
      */
-    fun loadCookies(url: HttpUrl): List<Cookie> {
+    fun loadCookies(): List<Cookie> {
         return try {
             val json = getSharedPreferences().getString(COOKIE_KEY, null)
             if (json.isNullOrEmpty()) {
@@ -101,18 +99,18 @@ object CookieManager {
                     }
 
                     // 创建 Cookie 对象
-                    Cookie.Builder()
+                    val builder = Cookie.Builder()
                         .name(data.name)
                         .value(data.value)
                         .domain(data.domain)
                         .path(data.path)
                         .expiresAt(data.expiresAt)
-                        .secure(data.secure)
-                        .httpOnly(data.httpOnly)
-                        .let { builder ->
-                            if (data.hostOnly) builder.hostOnly() else builder
-                        }
-                        .build()
+
+                    // 设置 secure 和 httpOnly 标记
+                    if (data.secure) builder.secure()
+                    if (data.httpOnly) builder.httpOnly()
+
+                    builder.build()
                 } catch (e: Exception) {
                     Log.w("CookieManager", "Failed to recreate cookie: ${data.name}", e)
                     null
