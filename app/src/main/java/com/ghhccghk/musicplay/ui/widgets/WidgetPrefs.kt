@@ -6,8 +6,11 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 
 // 共享的 Glance widget preferences key，供 Widget 与外部同步器使用
 val PREF_LINE_LAST = stringPreferencesKey("line_last")
+val PREF_LINE_LAST_TF = stringPreferencesKey("line_last_tf")
 val PREF_LINE_CURRENT = stringPreferencesKey("line_current")
+val PREF_LINE_CURRENT_TF = stringPreferencesKey("line_current_tf")
 val PREF_LINE_NEXT = stringPreferencesKey("line_next")
+val PREF_LINE_NEXT_TF = stringPreferencesKey("line_next_tf")
 val PREF_AGGRESSIVE_SCALE = booleanPreferencesKey("lyric_aggressive_scale")
 val PREF_TYPEWRITER_INDEX = intPreferencesKey("lyric_typewriter_index")
 

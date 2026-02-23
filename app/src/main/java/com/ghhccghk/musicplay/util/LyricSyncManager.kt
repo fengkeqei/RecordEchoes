@@ -10,8 +10,11 @@ import com.ghhccghk.musicplay.data.objects.MediaViewModelObject
 import com.ghhccghk.musicplay.ui.widgets.LyricGlanceWidget
 import com.ghhccghk.musicplay.ui.widgets.PREF_AGGRESSIVE_SCALE
 import com.ghhccghk.musicplay.ui.widgets.PREF_LINE_CURRENT
+import com.ghhccghk.musicplay.ui.widgets.PREF_LINE_CURRENT_TF
 import com.ghhccghk.musicplay.ui.widgets.PREF_LINE_LAST
+import com.ghhccghk.musicplay.ui.widgets.PREF_LINE_LAST_TF
 import com.ghhccghk.musicplay.ui.widgets.PREF_LINE_NEXT
+import com.ghhccghk.musicplay.ui.widgets.PREF_LINE_NEXT_TF
 import com.ghhccghk.musicplay.ui.widgets.PREF_TYPEWRITER_INDEX
 import com.mocharealm.accompanist.lyrics.core.model.karaoke.KaraokeLine
 import com.mocharealm.accompanist.lyrics.core.model.synced.SyncedLine
@@ -65,8 +68,12 @@ class LyricSyncManager private constructor(
      */
     suspend fun sync(currentTimeMs: Int) {
         val lastLine = StringBuilder()
+        val lastLineTf = StringBuilder()
         val currentLine = StringBuilder()
+        val currentLineTf = StringBuilder()
         val nextLine = StringBuilder()
+        val nextLineTf = StringBuilder()
+
 
         // 评估日志等级，避免不必要的字符串构造
         val verbose = Log.isLoggable("LyricSyncManager", Log.VERBOSE)
@@ -259,14 +266,24 @@ class LyricSyncManager private constructor(
             return when (obj) {
                 is KaraokeLine -> obj.toSyncedLine().content
                 is SyncedLine -> obj.content
-                is String -> obj
                 else -> ""
             }
         }
+        fun extractContentTF(obj: Any?): String? {
+            return when (obj) {
+                is KaraokeLine -> obj.translation
+                is SyncedLine -> obj.translation
+                else -> null
+            }
+        }
 
+        currentLineTf.append(extractContentTF(currentAny) ?: "")
         currentLine.append(extractContent(currentAny))
+        lastLineTf.append(extractContentTF(lastAny) ?: "")
         lastLine.append(extractContent(lastAny))
+        nextLineTf.append(extractContentTF(nextAny) ?: "")
         nextLine.append(extractContent(nextAny))
+
 
         // 逐字索引计算：如果是 KaraokeLine，就根据 syllables 的 start/end/content 计算已显示字符数
         var typewriterIndex: Int
@@ -394,6 +411,10 @@ class LyricSyncManager private constructor(
                 )
                 updateAppWidgetState(context, glanceId) {
                     it[PREF_LINE_LAST] = lastStr
+                    it[PREF_LINE_LAST_TF] = lastLineTf.toString()
+                    it[PREF_LINE_CURRENT_TF] = currentLineTf.toString()
+                    it[PREF_LINE_NEXT_TF] = nextLineTf.toString()
+                    it[PREF_LINE_CURRENT] = currentLine.toString()
                     it[PREF_LINE_CURRENT] = currentToSend
                     it[PREF_AGGRESSIVE_SCALE] = true
                     it[PREF_LINE_NEXT] = nextStr

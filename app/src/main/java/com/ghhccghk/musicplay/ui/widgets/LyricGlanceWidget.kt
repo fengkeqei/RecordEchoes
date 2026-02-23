@@ -57,15 +57,20 @@ class LyricGlanceWidget : GlanceAppWidget() {
             val last = prefs[PREF_LINE_LAST] ?: ""
             val current = prefs[PREF_LINE_CURRENT] ?: ""
             val next = prefs[PREF_LINE_NEXT] ?: ""
+            val lastTf = prefs[PREF_LINE_LAST_TF] ?: ""
+            val currentTf = prefs[PREF_LINE_CURRENT_TF] ?: ""
+            val nextTf = prefs[PREF_LINE_NEXT_TF] ?: ""
+
+
 
             val size = LocalSize.current
 
             // 根据尺寸判断不同的布局（保持原有逻辑）
-            val isCompact = size.width < 120.dp || size.height < 60.dp
-            val isMedium = size.width < 200.dp
+            val isCompact = size.width < 150.dp || size.height < 90.dp
+            val isMedium = size.width < 190.dp
 
             // 读取用户/外部偏好：是否启用激进缩放以及逐字显示索引（使用共享常量）
-            val aggressive = prefs[PREF_AGGRESSIVE_SCALE] ?: false
+            val aggressive = prefs[PREF_AGGRESSIVE_SCALE] ?: true
             val typewriterIndex = prefs[PREF_TYPEWRITER_INDEX] ?: -1
 
             // 计算一个基于最小边长（宽/高中取小）的缩放因子，用于动态调整文字大小以适配不同 widget 大小
@@ -91,18 +96,12 @@ class LyricGlanceWidget : GlanceAppWidget() {
                         if (n >= current.length) current else current.substring(0, n)
                     } else current
 
-                    // 调试日志：打印 widget 端读取到的逐字索引与将要展示的文本
-                    android.util.Log.d(
-                        "LyricGlanceWidget",
-                        "typewriterIndex=$typewriterIndex current='$current' displayed='$displayedCurrent'"
-                    )
-
                     if (isCompact) {
-                        CompactLayout(displayedCurrent, scale)
+                        CompactLayout(displayedCurrent, scale, currentTf)
                     } else if (isMedium) {
-                        MediumLayout(last, displayedCurrent, next, scale)
+                        MediumLayout(last, displayedCurrent, next, scale, lastTf, currentTf, nextTf)
                     } else {
-                        FullLayout(last, displayedCurrent, next, scale)
+                        FullLayout(last, displayedCurrent, next, scale, lastTf, currentTf, nextTf)
                     }
                 }
             }
@@ -121,7 +120,7 @@ class LyricGlanceWidget : GlanceAppWidget() {
      * 紧凑布局：仅显示当前行，居中
      */
     @Composable
-    fun CompactLayout(current: String, scale: Float) {
+    fun CompactLayout(current: String, scale: Float, currentTf: String) {
         Column(
             modifier = GlanceModifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
@@ -130,8 +129,16 @@ class LyricGlanceWidget : GlanceAppWidget() {
             Text(
                 text = current,
                 // 使用 scale 调整字号，实现文字自动缩放
-                style = TextStyle(fontSize = (16 * scale).sp, color = ColorProvider(Color.White))
+                style = TextStyle(fontSize = (18 * scale).sp, color = ColorProvider(Color.White))
             )
+            if (currentTf != "") {
+                Text(
+                    text = currentTf,
+                    // 使用 scale 调整字号，实现文字自动缩放
+                    style = TextStyle(fontSize = (16 * scale).sp, color = ColorProvider(Color.Gray))
+                )
+            }
+
         }
     }
 
@@ -139,7 +146,15 @@ class LyricGlanceWidget : GlanceAppWidget() {
      * 中等布局：显示上一行、当前行、下一行，当前行强调
      */
     @Composable
-    fun MediumLayout(last: String, current: String, next: String, scale: Float) {
+    fun MediumLayout(
+        last: String,
+        current: String,
+        next: String,
+        scale: Float,
+        lastTf: String,
+        currentTf: String,
+        nextTf: String
+    ) {
         Column(
             modifier = GlanceModifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
@@ -147,18 +162,43 @@ class LyricGlanceWidget : GlanceAppWidget() {
         ) {
             Text(
                 text = last,
-                style = TextStyle(fontSize = (14 * scale).sp, color = ColorProvider(Color.Gray))
+                style = TextStyle(fontSize = (22 * scale).sp, color = ColorProvider(Color.Gray))
             )
+            if (lastTf != "") {
+                Text(
+                    text = lastTf,
+                    // 使用 scale 调整字号，实现文字自动缩放
+                    style = TextStyle(fontSize = (19 * scale).sp, color = ColorProvider(Color.Gray))
+                )
+            }
+
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
                 text = current,
-                style = TextStyle(fontSize = (16 * scale).sp, color = ColorProvider(Color.White))
+                style = TextStyle(fontSize = (26 * scale).sp, color = ColorProvider(Color.White))
             )
+            if (currentTf != "") {
+                Text(
+                    text = currentTf,
+                    // 使用 scale 调整字号，实现文字自动缩放
+                    style = TextStyle(
+                        fontSize = (24 * scale).sp,
+                        color = ColorProvider(Color.White)
+                    )
+                )
+            }
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
                 text = next,
-                style = TextStyle(fontSize = (12 * scale).sp, color = ColorProvider(Color.Gray))
+                style = TextStyle(fontSize = (22 * scale).sp, color = ColorProvider(Color.Gray))
             )
+            if (nextTf != "") {
+                Text(
+                    text = nextTf,
+                    // 使用 scale 调整字号，实现文字自动缩放
+                    style = TextStyle(fontSize = (19 * scale).sp, color = ColorProvider(Color.Gray))
+                )
+            }
         }
     }
 
@@ -166,7 +206,15 @@ class LyricGlanceWidget : GlanceAppWidget() {
      * 完整布局：当前行更大字号以示突出
      */
     @Composable
-    fun FullLayout(last: String, current: String, next: String, scale: Float) {
+    fun FullLayout(
+        last: String,
+        current: String,
+        next: String,
+        scale: Float,
+        lastTf: String,
+        currentTf: String,
+        nextTf: String
+    ) {
         Column(
             modifier = GlanceModifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
@@ -174,18 +222,41 @@ class LyricGlanceWidget : GlanceAppWidget() {
         ) {
             Text(
                 text = last,
-                style = TextStyle(fontSize = (16 * scale).sp, color = ColorProvider(Color.Gray))
+                style = TextStyle(fontSize = (25 * scale).sp, color = ColorProvider(Color.Gray))
             )
+            if (lastTf != "") {
+                Text(
+                    text = lastTf,
+                    style = TextStyle(fontSize = (23 * scale).sp, color = ColorProvider(Color.Gray))
+                )
+            }
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
                 text = current,
-                style = TextStyle(fontSize = (20 * scale).sp, color = ColorProvider(Color.White))
+                style = TextStyle(fontSize = (30 * scale).sp, color = ColorProvider(Color.White))
             )
+            if (currentTf != "") {
+                Text(
+                    text = currentTf,
+                    // 使用 scale 调整字号，实现文字自动缩放
+                    style = TextStyle(
+                        fontSize = (28 * scale).sp,
+                        color = ColorProvider(Color.White)
+                    )
+                )
+            }
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
                 text = next,
-                style = TextStyle(fontSize = (16 * scale).sp, color = ColorProvider(Color.Gray))
+                style = TextStyle(fontSize = (25 * scale).sp, color = ColorProvider(Color.Gray))
             )
+            if (nextTf != "") {
+                Text(
+                    text = nextTf,
+                    // 使用 scale 调整字号，实现文字自动缩放
+                    style = TextStyle(fontSize = (23 * scale).sp, color = ColorProvider(Color.Gray))
+                )
+            }
         }
     }
 }
