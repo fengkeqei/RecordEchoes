@@ -119,6 +119,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.gson.Gson
 import com.hchen.superlyricapi.SuperLyricData
 import com.hchen.superlyricapi.SuperLyricPush
+import com.hchen.superlyricapi.SuperLyricWord
 import com.hyperfocus.api.IslandApi
 import com.mocharealm.accompanist.lyrics.core.model.karaoke.KaraokeLine
 import com.mocharealm.accompanist.lyrics.core.model.synced.SyncedLine
@@ -402,7 +403,10 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
                                                                 SuperLyricData()
                                                                     .setLyric(lyricResult) // 设置歌词
                                                                     .setBase64Icon(base64)
-                                                                    .setEnhancedLRCData(newLine.toEnhancedLRCList().toTypedArray())
+                                                                    .setLyricWordData(
+                                                                        newLine.toEnhancedLRCList()
+                                                                            .toTypedArray()
+                                                                    )
                                                                     .setPackageName(BuildConfig.APPLICATION_ID) // 设置本软件包名
                                                                     .setMediaMetadata(metadata)
                                                                     .setTranslation(
@@ -415,7 +419,10 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
                                                                     .setLyric(lyricResult) // 设置歌词
                                                                     .setBase64Icon(base64)
                                                                     .setMediaMetadata(metadata)
-                                                                    .setEnhancedLRCData(newLine.toEnhancedLRCList().toTypedArray())
+                                                                    .setLyricWordData(
+                                                                        newLine.toEnhancedLRCList()
+                                                                            .toTypedArray()
+                                                                    )
                                                                     .setPackageName(BuildConfig.APPLICATION_ID) // 设置本软件包名
                                                             ) // 发送歌词
                                                         }
@@ -1451,9 +1458,9 @@ class PlayService : MediaLibraryService(), MediaSessionService.Listener,
         }
     }
 
-    fun KaraokeLine.toEnhancedLRCList(): List<SuperLyricData.EnhancedLRCData> {
+    fun KaraokeLine.toEnhancedLRCList(): List<SuperLyricWord> {
         return syllables.map { syllable ->
-            SuperLyricData.EnhancedLRCData(
+            SuperLyricWord(
                 syllable.content,
                 syllable.start,
                 syllable.end
